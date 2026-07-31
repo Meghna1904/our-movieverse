@@ -1,0 +1,150 @@
+@import "tailwindcss" source(none);
+@source "../src";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+/*
+ * The Movieverse — dark cinematic design system.
+ * All colors below use hex; Tailwind v4 accepts them via CSS custom properties.
+ */
+
+@theme inline {
+  --font-serif: "DM Serif Display", ui-serif, Georgia, serif;
+  --font-sans: "Manrope", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "Inter", ui-monospace, SFMono-Regular, monospace;
+
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
+  --radius-3xl: calc(var(--radius) + 12px);
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-surface: var(--surface);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-gold: var(--gold);
+  --color-lavender: var(--lavender);
+  --color-blush: var(--blush);
+  --color-forest: var(--forest);
+}
+
+:root {
+  --radius: 1rem;
+
+  --background: #070A12;
+  --surface: #0D1324;
+  --foreground: #F5F1E8;
+
+  --card: #151A2E;
+  --card-foreground: #F5F1E8;
+  --popover: #151A2E;
+  --popover-foreground: #F5F1E8;
+
+  --primary: #E8B860;
+  --primary-foreground: #0D1324;
+  --secondary: #1E2540;
+  --secondary-foreground: #F5F1E8;
+  --muted: #1A2038;
+  --muted-foreground: #94A0B8;
+  --accent: #C3A6E8;
+  --accent-foreground: #0D1324;
+  --destructive: #E57373;
+  --destructive-foreground: #0D1324;
+
+  --border: rgba(245, 241, 232, 0.08);
+  --input: rgba(245, 241, 232, 0.06);
+  --ring: #E8B860;
+
+  --gold: #E8B860;
+  --lavender: #C3A6E8;
+  --blush: #E8A6B0;
+  --forest: #7BA88C;
+
+  --gradient-cinematic: radial-gradient(ellipse at top, #1A2038 0%, #070A12 60%);
+  --gradient-gold: linear-gradient(135deg, #E8B860 0%, #D89B3D 100%);
+  --gradient-lavender: linear-gradient(135deg, #C3A6E8 0%, #9B7FCF 100%);
+  --shadow-soft: 0 10px 40px -10px rgba(0, 0, 0, 0.5);
+  --shadow-glow: 0 0 60px -20px rgba(232, 184, 96, 0.4);
+  --shadow-poster: 0 20px 50px -15px rgba(0, 0, 0, 0.7);
+}
+
+@layer base {
+  * {
+    border-color: var(--color-border);
+  }
+
+  html, body {
+    background: var(--gradient-cinematic);
+    background-attachment: fixed;
+    color: var(--color-foreground);
+    font-family: var(--font-sans);
+    font-feature-settings: "ss01", "cv11";
+    -webkit-font-smoothing: antialiased;
+  }
+
+  h1, h2, h3, h4 {
+    font-family: var(--font-serif);
+    letter-spacing: -0.01em;
+  }
+
+  ::selection {
+    background: var(--gold);
+    color: var(--primary-foreground);
+  }
+}
+
+@utility glass {
+  background: linear-gradient(180deg, rgba(21, 26, 46, 0.7) 0%, rgba(13, 19, 36, 0.5) 100%);
+  backdrop-filter: blur(20px) saturate(1.4);
+  -webkit-backdrop-filter: blur(20px) saturate(1.4);
+  border: 1px solid var(--border);
+}
+
+@utility card-lift {
+  transition: transform 300ms cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 300ms;
+}
+@utility card-lift-hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-poster);
+}
+
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-6px); }
+}
+
+.animate-fade-in { animation: fade-in 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+.animate-float   { animation: float 4s ease-in-out infinite; }
+
+.skeleton {
+  background: linear-gradient(90deg, var(--muted) 0%, var(--secondary) 50%, var(--muted) 100%);
+  background-size: 200% 100%;
+  animation: shimmer 1.6s infinite;
+}
