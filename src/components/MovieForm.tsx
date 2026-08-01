@@ -1,6 +1,7 @@
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { useServerFn } from "@tanstack/react-start";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -8,6 +9,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { GENRES, MOODS, PLATFORMS } from "@/lib/format";
 import type { MovieInput } from "@/lib/movies.functions";
 import { cn } from "@/lib/utils";
+import { searchOmdb, getOmdbDetail } from "@/lib/omdb.functions";
+import { proxyImage } from "@/lib/image.functions";
+import { useCallback, useEffect, useRef, useState } from "react";
+import type { OmdbSearchResult } from "@/lib/omdb.functions";
 
 const schema = z.object({
   title: z.string().trim().min(1, "Title is required").max(200),
@@ -23,6 +28,31 @@ const schema = z.object({
 });
 
 export type MovieFormValues = z.infer<typeof schema>;
+
+// Parse runtime string like "169 min" → 169
+function parseRuntime(s: string): number | undefined {
+  const m = s.match(/\d+/);
+  return m ? parseInt(m[0], 10) : undefined;
+}
+
+// Parse year string like "2014" or "2014–2016" → 2014
+function parseYear(s: string): number | undefined {
+  const m = s.match(/\d{4}/);
+  return m ? parseInt(m[0], 10) : undefined;
+}
+
+// Split "Adventure, Drama, Sci-Fi" into array, filter against known GENRES
+function parseGenres(s: string): string[] {
+  return s
+    .split(",")
+    .map((g) => g.trim())
+    .filter((g) => GENRES.includes(g));
+}
+
+// Returns true if URL is already in Supabase Storage (no need to re-proxy)
+function isSupabaseUrl(url: string): boolean {
+  return url.includes(".supabase.co/storage/");
+}
 
 export function MovieForm({
   defaults,
@@ -40,6 +70,7 @@ export function MovieForm({
     handleSubmit,
     control,
     watch,
+    setValue,
     formState: { errors },
   } = useForm<MovieFormValues>({
     resolver: zodResolver(schema),
@@ -54,23 +85,119 @@ export function MovieForm({
 
   const posterUrl = watch("poster_url");
 
+  // ── OMDb search state ────────────────────────────────────────────────────────
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState<OmdbSearchResult[]>([]);
+  const [searchLoading, setSearchLoading] = useState(false);
+  const [showDropdown, setShowDropdown] = useState(false);
+  const [detailLoading, setDetailLoading] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const doSearch = useServerFn(searchOmdb);
+  const doDetail = useServerFn(getOmdbDetail);
+  const doProxy = useServerFn(proxyImage);
+
+  // Debounced search — fires 500 ms after user stops typing
+  const handleSearchInput = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const q = e.target.value;
+      setSearchQuery(q);
+      setSearchResults([]);
+      setShowDropdown(false);
+
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+      if (!q.trim()) return;
+
+      debounceRef.current = setTimeout(async () => {
+        setSearchLoading(true);
+        try {
+          const results = await doSearch({ data: { query: q.trim() } });
+          setSearchResults(results);
+          setShowDropdown(results.length > 0);
+        } catch {
+          setSearchResults([]);
+        } finally {
+          setSearchLoading(false);
+        }
+      }, 500);
+    },
+    [doSearch],
+  );
+
+  // Click outside → close dropdown
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setShowDropdown(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  // When a search result is selected → fetch full details and auto-fill form
+  async function handleSelectResult(result: OmdbSearchResult) {
+    setShowDropdown(false);
+    setSearchQuery(`${result.Title} (${result.Year})`);
+    setDetailLoading(true);
+    try {
+      const detail = await doDetail({ data: { imdbID: result.imdbID } });
+
+      setValue("title", detail.Title);
+
+      const yr = parseYear(detail.Year);
+      if (yr) setValue("year", yr);
+
+      const rt = parseRuntime(detail.Runtime);
+      if (rt) setValue("runtime", rt);
+
+      if (detail.Plot && detail.Plot !== "N/A") setValue("overview", detail.Plot);
+
+      const genres = parseGenres(detail.Genre);
+      if (genres.length > 0) setValue("genre", genres);
+
+      if (detail.Poster && detail.Poster !== "N/A") {
+        setValue("poster_url", detail.Poster);
+      }
+    } catch {
+      // silently ignore — user can fill manually
+    } finally {
+      setDetailLoading(false);
+    }
+  }
+
+  // On submit: proxy poster if it's an external URL, then call onSubmit
+  async function handleFormSubmit(v: MovieFormValues) {
+    let finalPosterUrl = v.poster_url?.trim() || null;
+
+    if (finalPosterUrl && !isSupabaseUrl(finalPosterUrl)) {
+      try {
+        const { publicUrl } = await doProxy({ data: { url: finalPosterUrl } });
+        finalPosterUrl = publicUrl;
+      } catch {
+        // If proxy fails, fall back to original URL
+      }
+    }
+
+    return onSubmit({
+      title: v.title,
+      year: v.year === "" || v.year == null ? null : Number(v.year),
+      runtime: v.runtime === "" || v.runtime == null ? null : Number(v.runtime),
+      poster_url: finalPosterUrl,
+      overview: v.overview?.trim() || null,
+      genre: v.genre ?? [],
+      added_by: v.added_by,
+      priority: v.priority ?? null,
+      streaming_platform: v.streaming_platform?.trim() || null,
+      expected_mood: v.expected_mood?.trim() || null,
+      status: "watchlist",
+    });
+  }
+
   return (
     <form
-      onSubmit={handleSubmit((v) =>
-        onSubmit({
-          title: v.title,
-          year: v.year === "" || v.year == null ? null : Number(v.year),
-          runtime: v.runtime === "" || v.runtime == null ? null : Number(v.runtime),
-          poster_url: v.poster_url?.trim() || null,
-          overview: v.overview?.trim() || null,
-          genre: v.genre ?? [],
-          added_by: v.added_by,
-          priority: v.priority ?? null,
-          streaming_platform: v.streaming_platform?.trim() || null,
-          expected_mood: v.expected_mood?.trim() || null,
-          status: "watchlist",
-        }),
-      )}
+      onSubmit={handleSubmit(handleFormSubmit)}
       className="grid gap-6 md:grid-cols-[180px_1fr]"
     >
       {/* Poster preview */}
@@ -85,7 +212,7 @@ export function MovieForm({
             />
           ) : (
             <div className="w-full h-full grid place-items-center text-xs text-muted-foreground px-3 text-center">
-              Poster preview appears here
+              {detailLoading ? "Loading poster…" : "Poster preview appears here"}
             </div>
           )}
         </div>
@@ -97,12 +224,69 @@ export function MovieForm({
             className="mt-1 bg-input border-border"
           />
           <p className="mt-1 text-[10px] text-muted-foreground">
-            Right-click any poster on Google Images → “Copy image address”.
+            Any URL works — Google, IMDb, etc. It'll be uploaded to your storage automatically.
           </p>
         </div>
       </div>
 
       <div className="grid gap-4">
+
+        {/* ── OMDb Search ──────────────────────────────────────────────── */}
+        <div className="relative" ref={dropdownRef}>
+          <Label className="text-xs font-semibold text-primary">
+            🔍 Search &amp; auto-fill from OMDb
+          </Label>
+          <div className="relative mt-1">
+            <Input
+              value={searchQuery}
+              onChange={handleSearchInput}
+              placeholder="Type a movie title to auto-fill details…"
+              className="bg-input border-border pr-8"
+              autoComplete="off"
+            />
+            {(searchLoading || detailLoading) && (
+              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground animate-pulse text-xs">
+                ⏳
+              </span>
+            )}
+          </div>
+
+          {/* Dropdown results */}
+          {showDropdown && searchResults.length > 0 && (
+            <div className="absolute z-50 mt-1 w-full rounded-xl border border-border bg-card shadow-xl overflow-hidden">
+              {searchResults.map((r) => (
+                <button
+                  key={r.imdbID}
+                  type="button"
+                  onClick={() => handleSelectResult(r)}
+                  className="flex items-center gap-3 w-full px-3 py-2.5 text-left hover:bg-muted transition-colors"
+                >
+                  {r.Poster && r.Poster !== "N/A" ? (
+                    <img
+                      src={r.Poster}
+                      alt={r.Title}
+                      className="w-8 h-12 object-cover rounded flex-shrink-0"
+                    />
+                  ) : (
+                    <div className="w-8 h-12 rounded bg-secondary flex-shrink-0" />
+                  )}
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium truncate">{r.Title}</p>
+                    <p className="text-xs text-muted-foreground">{r.Year}</p>
+                  </div>
+                </button>
+              ))}
+            </div>
+          )}
+
+          <p className="mt-1 text-[10px] text-muted-foreground">
+            Select a result to auto-fill title, year, runtime, genre, plot &amp; poster. You can edit anything after.
+          </p>
+        </div>
+
+        <div className="border-t border-border" />
+
+        {/* Title */}
         <div>
           <Label>Title *</Label>
           <Input
@@ -285,10 +469,10 @@ export function MovieForm({
         <div className="pt-2">
           <Button
             type="submit"
-            disabled={submitting}
+            disabled={submitting || detailLoading}
             className="rounded-full h-11 px-6 bg-primary text-primary-foreground hover:brightness-110 disabled:opacity-60"
           >
-            {submitting ? "Saving…" : submitLabel}
+            {submitting ? "Saving…" : detailLoading ? "Loading details…" : submitLabel}
           </Button>
         </div>
       </div>
