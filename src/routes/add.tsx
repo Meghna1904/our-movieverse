@@ -50,8 +50,13 @@ function AddPage() {
             setBusy(true);
             try {
               const m = await add({ data: values });
-              toast.success(`${m.title} added to your watchlist`);
-              navigate({ to: "/watchlist" });
+              const dest = values.status === "watched" ? "/watched" : "/watchlist";
+              toast.success(
+                values.status === "watched"
+                  ? `${m.title} saved to your memories! 🎬`
+                  : `${m.title} added to watchlist`,
+              );
+              navigate({ to: dest });
             } catch (e) {
               toast.error((e as Error).message);
               setBusy(false);

@@ -25,6 +25,8 @@ const schema = z.object({
   priority: z.enum(["low", "medium", "high"]).optional(),
   streaming_platform: z.string().optional(),
   expected_mood: z.string().optional(),
+  status: z.enum(["watchlist", "watched"]).default("watchlist"),
+  watched_date: z.string().optional(),
 });
 
 export type MovieFormValues = z.infer<typeof schema>;
@@ -56,12 +58,10 @@ function isSupabaseUrl(url: string): boolean {
 
 export function MovieForm({
   defaults,
-  submitLabel = "Add to watchlist",
   onSubmit,
   submitting,
 }: {
   defaults?: Partial<MovieFormValues>;
-  submitLabel?: string;
   onSubmit: (values: MovieInput) => void | Promise<void>;
   submitting?: boolean;
 }) {
@@ -79,11 +79,15 @@ export function MovieForm({
       genre: [],
       added_by: "whiskeyy",
       priority: "medium",
+      status: "watchlist",
+      watched_date: "",
       ...defaults,
     },
   });
 
   const posterUrl = watch("poster_url");
+  const status = watch("status");
+  const isWatched = status === "watched";
 
   // ── OMDb search state ────────────────────────────────────────────────────────
   const [searchQuery, setSearchQuery] = useState("");
@@ -191,7 +195,8 @@ export function MovieForm({
       priority: v.priority ?? null,
       streaming_platform: v.streaming_platform?.trim() || null,
       expected_mood: v.expected_mood?.trim() || null,
-      status: "watchlist",
+      status: v.status ?? "watchlist",
+      watched_date: v.status === "watched" ? (v.watched_date?.trim() || null) : null,
     });
   }
 
@@ -285,6 +290,50 @@ export function MovieForm({
         </div>
 
         <div className="border-t border-border" />
+
+        {/* ── Add to: Watchlist / Already Watched ──────────────────────── */}
+        <div>
+          <Label className="text-xs font-semibold">Add to</Label>
+          <Controller
+            control={control}
+            name="status"
+            render={({ field }) => (
+              <div className="mt-1.5 inline-flex gap-1 p-1 bg-input rounded-full border border-border">
+                {(["watchlist", "watched"] as const).map((s) => (
+                  <button
+                    type="button"
+                    key={s}
+                    onClick={() => field.onChange(s)}
+                    className={cn(
+                      "px-4 py-1.5 rounded-full text-xs font-medium transition",
+                      field.value === s
+                        ? "bg-primary text-primary-foreground"
+                        : "text-muted-foreground hover:text-foreground",
+                    )}
+                  >
+                    {s === "watchlist" ? "📋 Watchlist" : "✅ Already Watched"}
+                  </button>
+                ))}
+              </div>
+            )}
+          />
+        </div>
+
+        {/* Optional watched date — only when Already Watched is selected */}
+        {isWatched && (
+          <div className="animate-fade-in">
+            <Label>
+              When did you watch it?{" "}
+              <span className="text-muted-foreground font-normal">(optional)</span>
+            </Label>
+            <Input
+              type="date"
+              {...register("watched_date")}
+              max={new Date().toISOString().slice(0, 10)}
+              className="mt-1 bg-input border-border"
+            />
+          </div>
+        )}
 
         {/* Title */}
         <div>
@@ -472,7 +521,7 @@ export function MovieForm({
             disabled={submitting || detailLoading}
             className="rounded-full h-11 px-6 bg-primary text-primary-foreground hover:brightness-110 disabled:opacity-60"
           >
-            {submitting ? "Saving…" : detailLoading ? "Loading details…" : submitLabel}
+            {submitting ? "Saving…" : detailLoading ? "Loading details…" : isWatched ? "Save as Watched" : "Add to Watchlist"}
           </Button>
         </div>
       </div>
