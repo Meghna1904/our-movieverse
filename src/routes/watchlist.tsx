@@ -1,4 +1,4 @@
-import { createFileRoute, redirect, useNavigate, Link } from "@tanstack/react-router";
+import { createFileRoute, redirect, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState, useMemo } from "react";
@@ -9,7 +9,7 @@ import { MarkWatchedDialog } from "@/components/MarkWatchedDialog";
 import { getSessionStatus } from "@/lib/gate.functions";
 import { listMovies, updateMovie, deleteMovie, type Movie } from "@/lib/movies.functions";
 import { Input } from "@/components/ui/input";
-import { Search, Bookmark, Plus, ChevronDown } from "lucide-react";
+import { Search, Plus, ChevronDown, Bookmark } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/watchlist")({
@@ -21,8 +21,8 @@ export const Route = createFileRoute("/watchlist")({
   },
   head: () => ({
     meta: [
-      { title: "Watchlist — The Movieverse" },
-      { name: "description", content: "Movies we still want to watch together." },
+      { title: "The Jar - Our Movieverse" },
+      { name: "description", content: "Movies waiting for the next shared movie night." },
     ],
   }),
   component: WatchlistPage,
@@ -30,13 +30,12 @@ export const Route = createFileRoute("/watchlist")({
 
 function WatchlistPage() {
   const { who } = Route.useRouteContext();
-  const qc       = useQueryClient();
-  const navigate  = useNavigate();
-  const update    = useServerFn(updateMovie);
-  const del       = useServerFn(deleteMovie);
+  const qc = useQueryClient();
+  const update = useServerFn(updateMovie);
+  const del = useServerFn(deleteMovie);
 
-  const [q, setQ]         = useState("");
-  const [sort, setSort]   = useState<"recent" | "priority" | "title">("recent");
+  const [q, setQ] = useState("");
+  const [sort, setSort] = useState<"recent" | "priority" | "title">("recent");
   const [watching, setWatching] = useState<Movie | null>(null);
   const [showList, setShowList] = useState(true);
 
@@ -66,7 +65,12 @@ function WatchlistPage() {
           patch: { ...(values as object), status: "watched" } as never,
         },
       });
-      toast.success(`${watching.title} — added to your memories`);
+      toast.success(`${watching.title} saved to your memories`);
+      window.dispatchEvent(
+        new CustomEvent("movieverse:garden-bloom", {
+          detail: { title: watching.title },
+        }),
+      );
       setWatching(null);
       qc.invalidateQueries();
     } catch (e) {
@@ -75,9 +79,9 @@ function WatchlistPage() {
   };
 
   const handleDelete = async (m: Movie) => {
-    if (!confirm(`Remove "${m.title}" from watchlist?`)) return;
+    if (!confirm(`Remove "${m.title}" from the jar?`)) return;
     await del({ data: { id: m.id } });
-    toast.success("Removed");
+    toast.success("Removed from the jar");
     qc.invalidateQueries({ queryKey: ["movies"] });
   };
 
@@ -85,97 +89,65 @@ function WatchlistPage() {
 
   return (
     <AppShell>
-
-      {/* ── Page header ──────────────────────────────────────────────── */}
-      <div className="flex items-end justify-between mb-6 gap-4 flex-wrap">
+      <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
         <div>
-          <p className="text-xs uppercase tracking-[0.25em] text-muted-foreground">The queue</p>
-          <h1 className="font-serif text-4xl mt-1">Watchlist</h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            {count} {count === 1 ? "movie" : "movies"} waiting for a movie night.
+          <p className="page-kicker">The shared queue</p>
+          <h1 className="mt-1 font-serif text-4xl md:text-5xl">The movie jar</h1>
+          <p className="mt-2 max-w-xl text-sm text-muted-foreground">
+            {count} {count === 1 ? "movie is" : "movies are"} folded up and waiting
+            for the next night you cannot decide.
           </p>
         </div>
-        <Link
-          to="/add"
-          className="rounded-full bg-primary text-primary-foreground px-5 py-2.5 text-sm font-semibold hover:brightness-110 inline-flex items-center gap-1.5 flex-shrink-0"
-        >
-          <Plus className="w-4 h-4" /> Add movie
+        <Link to="/add" className="our-button our-button-primary">
+          <Plus className="h-4 w-4" /> Add movie
         </Link>
       </div>
 
-      {/* ── Movie Jar hero ────────────────────────────────────────────── */}
       <section className="mb-8">
-        <div
-          className="rounded-3xl relative overflow-hidden"
-          style={{
-            background: "linear-gradient(135deg, #0D1324 0%, #151A2E 50%, #1A2038 100%)",
-            border: "1px solid rgba(255,255,255,0.06)",
-          }}
-        >
-          {/* Top gold line */}
-          <div
-            className="absolute top-0 left-1/2 -translate-x-1/2 pointer-events-none"
-            style={{
-              width: "60%",
-              height: "1px",
-              background: "linear-gradient(to right, transparent, rgba(232,184,96,0.3), transparent)",
-            }}
-          />
-
-          {query.isLoading ? (
-            <div className="h-64 flex items-center justify-center">
-              <p className="text-sm text-muted-foreground animate-pulse">Loading jar…</p>
-            </div>
-          ) : count === 0 ? (
-            <div className="py-16 flex flex-col items-center text-center px-6">
-              <span className="text-5xl mb-4">🫙</span>
-              <h3 className="font-serif text-2xl">The jar is empty</h3>
-              <p className="text-sm text-muted-foreground mt-2 max-w-xs">
-                Add movies you both want to see. Then shake the jar to pick tonight's film.
+        {query.isLoading ? (
+          <div className="room-panel grid min-h-80 place-items-center">
+            <p className="text-sm text-muted-foreground animate-pulse">Loading the jar...</p>
+          </div>
+        ) : count === 0 ? (
+          <div className="room-panel grid min-h-80 place-items-center px-6 text-center">
+            <div>
+              <Bookmark className="mx-auto h-10 w-10 text-primary/70" />
+              <h3 className="mt-4 font-serif text-2xl">The jar is empty.</h3>
+              <p className="mx-auto mt-2 max-w-sm text-sm text-muted-foreground">
+                Add movies you both want to see. The first ticket will make this room
+                feel alive.
               </p>
-              <Link
-                to="/add"
-                className="mt-5 rounded-full bg-primary text-primary-foreground px-6 py-2.5 text-sm font-semibold hover:brightness-110"
-              >
-                Add the first movie
+              <Link to="/add" className="our-button our-button-primary mt-5">
+                <Plus className="h-4 w-4" /> Add the first movie
               </Link>
             </div>
-          ) : (
-            <div className="px-6 py-8">
-              <div className="text-center mb-2">
-                <p className="text-[10px] uppercase tracking-[0.3em] text-primary/60">The Movie Jar</p>
-                <p className="text-sm text-muted-foreground mt-0.5">Can't decide? Let fate choose.</p>
-              </div>
-              <MovieJar movies={items.length > 0 ? items : (query.data ?? [])} />
-            </div>
-          )}
-        </div>
+          </div>
+        ) : (
+          <MovieJar movies={items.length > 0 ? items : (query.data ?? [])} />
+        )}
       </section>
 
-      {/* ── All movies list ────────────────────────────────────────────── */}
       {count > 0 && (
         <>
-          {/* Collapsible header */}
           <button
             onClick={() => setShowList((v) => !v)}
-            className="flex items-center gap-2 w-full text-left mb-4 group"
+            className="mb-4 flex w-full items-center gap-2 text-left group"
           >
-            <h2 className="font-serif text-2xl">All movies</h2>
+            <h2 className="font-serif text-2xl">Folded tickets</h2>
             <ChevronDown
-              className={`w-4 h-4 text-muted-foreground transition-transform ${showList ? "" : "-rotate-90"}`}
+              className={`h-4 w-4 text-muted-foreground transition-transform ${showList ? "" : "-rotate-90"}`}
             />
           </button>
 
           {showList && (
-            <>
-              {/* Search + sort */}
-              <div className="mb-5 flex gap-3 flex-wrap">
-                <div className="relative flex-1 min-w-[220px]">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <div className="room-panel">
+              <div className="mb-5 flex flex-wrap gap-3">
+                <div className="relative min-w-[220px] flex-1">
+                  <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                   <Input
                     value={q}
                     onChange={(e) => setQ(e.target.value)}
-                    placeholder="Search title…"
+                    placeholder="Search the jar..."
                     className="pl-9 bg-input border-border"
                   />
                 </div>
@@ -186,22 +158,16 @@ function WatchlistPage() {
                 >
                   <option value="recent">Recently added</option>
                   <option value="priority">Priority</option>
-                  <option value="title">A–Z</option>
+                  <option value="title">A-Z</option>
                 </select>
               </div>
 
-              {query.isLoading ? (
-                <div className="grid md:grid-cols-2 gap-4">
-                  {Array.from({ length: 4 }).map((_, i) => (
-                    <div key={i} className="h-40 rounded-2xl skeleton" />
-                  ))}
-                </div>
-              ) : items.length === 0 ? (
-                <p className="text-center py-10 text-sm text-muted-foreground">
-                  No results for "{q}"
+              {items.length === 0 ? (
+                <p className="py-10 text-center text-sm text-muted-foreground">
+                  No tickets match "{q}".
                 </p>
               ) : (
-                <div className="grid md:grid-cols-2 gap-4">
+                <div className="grid gap-4 md:grid-cols-2">
                   {items.map((m) => (
                     <TicketCard
                       key={m.id}
@@ -212,7 +178,7 @@ function WatchlistPage() {
                   ))}
                 </div>
               )}
-            </>
+            </div>
           )}
         </>
       )}

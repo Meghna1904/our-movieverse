@@ -16,8 +16,8 @@ export const Route = createFileRoute("/add")({
   },
   head: () => ({
     meta: [
-      { title: "Add a movie — The Movieverse" },
-      { name: "description", content: "Add a movie to your shared watchlist." },
+      { title: "Add a movie - Our Movieverse" },
+      { name: "description", content: "Add a movie to the shared jar or archive." },
     ],
   }),
   component: AddPage,
@@ -32,17 +32,15 @@ function AddPage() {
   return (
     <AppShell>
       <div className="mb-6">
-        <p className="text-xs uppercase tracking-[0.25em] text-muted-foreground">
-          New entry
-        </p>
-        <h1 className="font-serif text-4xl mt-1">Add a movie</h1>
-        <p className="text-sm text-muted-foreground mt-1 max-w-xl">
-          Fill this out and it lands in your watchlist. When you actually watch it, mark
-          it watched and it becomes part of your memory book forever.
+        <p className="page-kicker">New ticket</p>
+        <h1 className="mt-1 font-serif text-4xl md:text-5xl">Add to our movie night</h1>
+        <p className="mt-2 max-w-xl text-sm text-muted-foreground">
+          Put something in the jar for later, or save it straight into the archive if
+          the memory already happened.
         </p>
       </div>
 
-      <div className="rounded-3xl bg-card border border-border p-6 md:p-8">
+      <div className="room-panel p-6 md:p-8">
         <MovieForm
           defaults={{ added_by: (who ?? "whiskeyy") as "whiskeyy" | "matildaa" }}
           submitting={busy}
@@ -53,9 +51,16 @@ function AddPage() {
               const dest = values.status === "watched" ? "/watched" : "/watchlist";
               toast.success(
                 values.status === "watched"
-                  ? `${m.title} saved to your memories! 🎬`
-                  : `${m.title} added to watchlist`,
+                  ? `${m.title} saved to your memories`
+                  : `${m.title} added to the jar`,
               );
+              if (values.status === "watched") {
+                window.dispatchEvent(
+                  new CustomEvent("movieverse:garden-bloom", {
+                    detail: { title: m.title },
+                  }),
+                );
+              }
               navigate({ to: dest });
             } catch (e) {
               toast.error((e as Error).message);

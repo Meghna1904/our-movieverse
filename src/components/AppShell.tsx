@@ -7,13 +7,20 @@ import { listMovies } from "@/lib/movies.functions";
 import { Film, Home, Bookmark, BarChart3, Plus, LogOut, Bell, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState, useRef, useEffect } from "react";
+import type { CSSProperties } from "react";
 import { DustParticles } from "@/components/Ambient";
 import { MouseGlow } from "@/components/MouseGlow";
 
+type GardenBloom = {
+  id: number;
+  title?: string;
+  color: string;
+};
+
 const NAV = [
-  { to: "/", label: "Home", icon: Home },
-  { to: "/watchlist", label: "Watchlist", icon: Bookmark },
-  { to: "/watched", label: "Watched", icon: Film },
+  { to: "/", label: "Lobby", icon: Home },
+  { to: "/watchlist", label: "Jar", icon: Bookmark },
+  { to: "/watched", label: "Archive", icon: Film },
   { to: "/sky", label: "Wall", icon: Sparkles },
   { to: "/stats", label: "Stats", icon: BarChart3 },
 ] as const;
@@ -22,7 +29,6 @@ function NotificationBell() {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
-  // Get current user
   const whoQuery = useQuery({
     queryKey: ["session"],
     queryFn: () => getSessionStatus(),
@@ -30,14 +36,12 @@ function NotificationBell() {
   });
   const who = whoQuery.data?.who as "whiskeyy" | "matildaa" | null | undefined;
 
-  // Get watched movies
   const moviesQuery = useQuery({
     queryKey: ["movies", "watched"],
     queryFn: () => listMovies({ data: { status: "watched" } }),
     staleTime: 30_000,
   });
 
-  // Movies where THIS user hasn't rated yet
   const unrated = (moviesQuery.data ?? []).filter((m) => {
     if (!who) return false;
     const mine = who === "whiskeyy" ? m.my_rating : m.his_rating;
@@ -46,7 +50,6 @@ function NotificationBell() {
 
   const count = unrated.length;
 
-  // Close on click outside
   useEffect(() => {
     function handler(e: MouseEvent) {
       if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
@@ -75,13 +78,13 @@ function NotificationBell() {
           <div className="px-4 py-3 border-b border-border flex items-center justify-between">
             <p className="text-sm font-semibold">Pending ratings</p>
             {count === 0 && (
-              <span className="text-xs text-muted-foreground">All caught up ✓</span>
+              <span className="text-xs text-muted-foreground">All caught up</span>
             )}
           </div>
 
           {count === 0 ? (
             <div className="px-4 py-6 text-center text-sm text-muted-foreground">
-              You've rated everything 🌟
+              Everything has a rating.
             </div>
           ) : (
             <div className="divide-y divide-border max-h-72 overflow-y-auto">
@@ -106,7 +109,7 @@ function NotificationBell() {
                   )}
                   <div className="min-w-0">
                     <p className="text-sm font-medium truncate">{m.title}</p>
-                    <p className="text-xs text-primary mt-0.5">⭐ Tap to rate</p>
+                    <p className="text-xs text-primary mt-0.5">Tap to rate</p>
                   </div>
                 </Link>
               ))}
@@ -114,6 +117,57 @@ function NotificationBell() {
           )}
         </div>
       )}
+    </div>
+  );
+}
+
+function GardenBloomPop() {
+  const [bloom, setBloom] = useState<GardenBloom | null>(null);
+
+  useEffect(() => {
+    const colors = ["#F6B7C8", "#E8B860", "#C3A6E8", "#FFDF8A", "#A8D8B9", "#F29D7E"];
+
+    function onBloom(e: Event) {
+      const detail = (e as CustomEvent<{ title?: string }>).detail;
+      setBloom({
+        id: Date.now(),
+        title: detail?.title,
+        color: colors[Math.floor(Math.random() * colors.length)],
+      });
+    }
+
+    window.addEventListener("movieverse:garden-bloom", onBloom);
+    return () => window.removeEventListener("movieverse:garden-bloom", onBloom);
+  }, []);
+
+  useEffect(() => {
+    if (!bloom) return;
+    const t = window.setTimeout(() => setBloom(null), 2600);
+    return () => window.clearTimeout(t);
+  }, [bloom]);
+
+  if (!bloom) return null;
+
+  return (
+    <div className="garden-bloom-pop" role="status" aria-live="polite">
+      <div
+        className="garden-bloom-flower"
+        style={{ "--bloom-color": bloom.color } as CSSProperties}
+      >
+        <span className="garden-bloom-petal garden-bloom-petal-one" />
+        <span className="garden-bloom-petal garden-bloom-petal-two" />
+        <span className="garden-bloom-petal garden-bloom-petal-three" />
+        <span className="garden-bloom-petal garden-bloom-petal-four" />
+        <span className="garden-bloom-center" />
+      </div>
+      <div>
+        <p className="text-[10px] uppercase tracking-[0.2em] text-primary">
+          New flower added
+        </p>
+        <p className="mt-1 max-w-[13rem] truncate font-serif text-lg">
+          {bloom.title ?? "A movie memory"}
+        </p>
+      </div>
     </div>
   );
 }
@@ -127,17 +181,18 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     <div className="relative min-h-screen flex flex-col overflow-x-hidden">
       <MouseGlow />
       <DustParticles />
+      <GardenBloomPop />
 
       <header className="sticky top-0 z-40 glass">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3 md:px-8">
           <Link to="/" className="flex items-center gap-2">
-            <div className="grid place-items-center w-9 h-9 rounded-full bg-gradient-to-br from-primary to-[#D89B3D] text-primary-foreground">
+            <div className="grid place-items-center w-9 h-9 rounded-full bg-gradient-to-br from-primary to-[#D89B3D] text-primary-foreground shadow-[var(--shadow-glow)]">
               <Film className="w-4 h-4" />
             </div>
             <div className="flex flex-col leading-none">
-              <span className="font-serif text-lg">The Movieverse</span>
+              <span className="font-serif text-lg">Our Movieverse</span>
               <span className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
-                Whiskeyy · matildaa
+                Whiskeyy + matildaa
               </span>
             </div>
           </Link>
@@ -169,7 +224,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               to="/add"
               className="hidden sm:inline-flex items-center gap-1.5 rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition-transform hover:scale-105"
             >
-              <Plus className="w-4 h-4" /> Add
+              <Plus className="w-4 h-4" /> Add movie
             </Link>
             <NotificationBell />
             <button

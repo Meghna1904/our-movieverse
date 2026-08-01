@@ -11,39 +11,35 @@ export function MoviePosterCard({ movie }: { movie: Movie }) {
       : movie.my_rating ?? movie.his_rating ?? null;
 
   return (
-    <Link
-      to="/movie/$id"
-      params={{ id: movie.id }}
-      className="group block"
-    >
-      <div className="relative aspect-[2/3] overflow-hidden rounded-xl bg-card card-lift hover:[&]:card-lift-hover">
+    <Link to="/movie/$id" params={{ id: movie.id }} className="group block">
+      <div className="poster-memory-frame card-lift hover:[&]:card-lift-hover">
         {movie.poster_url ? (
           <img
             src={movie.poster_url}
             alt={movie.title}
             loading="lazy"
-            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
           />
         ) : (
-          <div className="w-full h-full grid place-items-center bg-gradient-to-br from-secondary to-card">
-            <span className="font-serif text-xl px-4 text-center text-muted-foreground">
+          <div className="grid h-full w-full place-items-center bg-gradient-to-br from-secondary to-card">
+            <span className="px-4 text-center font-serif text-xl text-muted-foreground">
               {movie.title}
             </span>
           </div>
         )}
-        <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black/80 to-transparent" />
+        <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black/85 to-transparent" />
         {avg != null && (
-          <div className="absolute top-2 right-2 flex items-center gap-1 rounded-full bg-black/60 backdrop-blur px-2 py-1 text-xs">
-            <Star className="w-3 h-3 fill-primary text-primary" />
+          <div className="absolute right-2 top-2 flex items-center gap-1 rounded-full bg-black/60 px-2 py-1 text-xs backdrop-blur">
+            <Star className="h-3 w-3 fill-primary text-primary" />
             <span className="font-mono">{avg}</span>
           </div>
         )}
       </div>
       <div className="mt-2 px-0.5">
-        <h3 className="text-sm font-semibold truncate">{movie.title}</h3>
-        <p className="text-xs text-muted-foreground truncate">
-          {movie.year ?? "—"}
-          {movie.runtime ? ` · ${formatRuntime(movie.runtime)}` : ""}
+        <h3 className="truncate text-sm font-semibold">{movie.title}</h3>
+        <p className="truncate text-xs text-muted-foreground">
+          {movie.year ?? "-"}
+          {movie.runtime ? ` - ${formatRuntime(movie.runtime)}` : ""}
         </p>
       </div>
     </Link>
@@ -60,48 +56,47 @@ export function TicketCard({
   onDelete?: () => void;
 }) {
   return (
-    <div className="group relative flex overflow-hidden rounded-2xl bg-card border border-border card-lift hover:[&]:card-lift-hover">
-      <div className="w-24 sm:w-32 shrink-0 aspect-[2/3] relative bg-secondary">
+    <div className="group relative flex overflow-hidden rounded-2xl border border-border bg-card/88 card-lift hover:[&]:card-lift-hover">
+      <div className="relative aspect-[2/3] w-24 shrink-0 bg-secondary sm:w-32">
         {movie.poster_url ? (
           <img
             src={movie.poster_url}
             alt={movie.title}
             loading="lazy"
-            className="w-full h-full object-cover"
+            className="h-full w-full object-cover"
           />
         ) : (
-          <div className="w-full h-full grid place-items-center text-muted-foreground text-xs px-2 text-center">
+          <div className="grid h-full w-full place-items-center px-2 text-center text-xs text-muted-foreground">
             No poster
           </div>
         )}
       </div>
 
-      {/* perforation */}
-      <div className="hidden sm:flex flex-col justify-around items-center py-4 w-4 bg-card">
+      <div className="hidden w-4 flex-col items-center justify-around bg-card py-4 sm:flex">
         {Array.from({ length: 8 }).map((_, i) => (
-          <span key={i} className="w-1.5 h-1.5 rounded-full bg-background" />
+          <span key={i} className="h-1.5 w-1.5 rounded-full bg-background" />
         ))}
       </div>
 
-      <div className="flex-1 p-4 flex flex-col gap-2 min-w-0">
+      <div className="flex min-w-0 flex-1 flex-col gap-2 p-4">
         <div className="flex items-start justify-between gap-2">
           <div className="min-w-0">
             <Link
               to="/movie/$id"
               params={{ id: movie.id }}
-              className="block font-serif text-lg leading-tight truncate hover:text-primary"
+              className="block truncate font-serif text-lg leading-tight hover:text-primary"
             >
               {movie.title}
             </Link>
-            <p className="text-xs text-muted-foreground truncate">
-              {movie.year ?? "—"}
-              {movie.genre?.length ? ` · ${movie.genre.slice(0, 2).join(", ")}` : ""}
+            <p className="truncate text-xs text-muted-foreground">
+              {movie.year ?? "-"}
+              {movie.genre?.length ? ` - ${movie.genre.slice(0, 2).join(", ")}` : ""}
             </p>
           </div>
           {movie.priority && (
             <span
               className={cn(
-                "text-[10px] uppercase tracking-widest px-2 py-1 rounded-full shrink-0",
+                "shrink-0 rounded-full px-2 py-1 text-[10px] uppercase tracking-widest",
                 movie.priority === "high" && "bg-blush/20 text-blush",
                 movie.priority === "medium" && "bg-primary/20 text-primary",
                 movie.priority === "low" && "bg-forest/20 text-forest",
@@ -122,7 +117,7 @@ export function TicketCard({
             </span>
           )}
           {movie.expected_mood && (
-            <span className="rounded-full bg-lavender/10 text-lavender px-2 py-0.5">
+            <span className="rounded-full bg-lavender/10 px-2 py-0.5 text-lavender">
               {movie.expected_mood}
             </span>
           )}
@@ -132,7 +127,7 @@ export function TicketCard({
           {onMarkWatched && (
             <button
               onClick={onMarkWatched}
-              className="flex-1 rounded-full bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground hover:brightness-110 transition"
+              className="flex-1 rounded-full bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground transition hover:brightness-110"
             >
               Mark watched
             </button>
@@ -140,7 +135,7 @@ export function TicketCard({
           {onDelete && (
             <button
               onClick={onDelete}
-              className="rounded-full border border-border px-3 py-1.5 text-xs text-muted-foreground hover:text-destructive hover:border-destructive/40 transition"
+              className="rounded-full border border-border px-3 py-1.5 text-xs text-muted-foreground transition hover:border-destructive/40 hover:text-destructive"
             >
               Delete
             </button>
