@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AddRouteImport } from './routes/add'
+import { Route as SkyRouteImport } from './routes/sky'
 import { Route as StatsRouteImport } from './routes/stats'
 import { Route as UnlockRouteImport } from './routes/unlock'
 import { Route as WatchedRouteImport } from './routes/watched'
@@ -25,6 +26,11 @@ const IndexRoute = IndexRouteImport.update({
 const AddRoute = AddRouteImport.update({
   id: '/add',
   path: '/add',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SkyRoute = SkyRouteImport.update({
+  id: '/sky',
+  path: '/sky',
   getParentRoute: () => rootRouteImport,
 } as any)
 const StatsRoute = StatsRouteImport.update({
@@ -56,6 +62,7 @@ const MovieIdRoute = MovieIdRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/add': typeof AddRoute
+  '/sky': typeof SkyRoute
   '/stats': typeof StatsRoute
   '/unlock': typeof UnlockRoute
   '/watched': typeof WatchedRoute
@@ -65,6 +72,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/add': typeof AddRoute
+  '/sky': typeof SkyRoute
   '/stats': typeof StatsRoute
   '/unlock': typeof UnlockRoute
   '/watched': typeof WatchedRoute
@@ -75,6 +83,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/add': typeof AddRoute
+  '/sky': typeof SkyRoute
   '/stats': typeof StatsRoute
   '/unlock': typeof UnlockRoute
   '/watched': typeof WatchedRoute
@@ -86,6 +95,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/add'
+    | '/sky'
     | '/stats'
     | '/unlock'
     | '/watched'
@@ -95,6 +105,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/add'
+    | '/sky'
     | '/stats'
     | '/unlock'
     | '/watched'
@@ -104,6 +115,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/add'
+    | '/sky'
     | '/stats'
     | '/unlock'
     | '/watched'
@@ -114,6 +126,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AddRoute: typeof AddRoute
+  SkyRoute: typeof SkyRoute
   StatsRoute: typeof StatsRoute
   UnlockRoute: typeof UnlockRoute
   WatchedRoute: typeof WatchedRoute
@@ -135,6 +148,13 @@ declare module '@tanstack/react-router' {
       path: '/add'
       fullPath: '/add'
       preLoaderRoute: typeof AddRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sky': {
+      id: '/sky'
+      path: '/sky'
+      fullPath: '/sky'
+      preLoaderRoute: typeof SkyRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/stats': {
@@ -178,6 +198,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AddRoute: AddRoute,
+  SkyRoute: SkyRoute,
   StatsRoute: StatsRoute,
   UnlockRoute: UnlockRoute,
   WatchedRoute: WatchedRoute,

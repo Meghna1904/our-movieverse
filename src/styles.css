@@ -161,3 +161,104 @@ select option:checked,
 select option:hover {
   background-color: #1E2540;
 }
+
+/* ── Movie Jar ──────────────────────────────────────────────────────── */
+@keyframes jar-shake {
+  0%, 100% { transform: translateX(0) rotate(0deg); }
+  12%  { transform: translateX(-7px) rotate(-4deg); }
+  25%  { transform: translateX(7px) rotate(4deg); }
+  37%  { transform: translateX(-5px) rotate(-2.5deg); }
+  50%  { transform: translateX(5px) rotate(2.5deg); }
+  62%  { transform: translateX(-3px) rotate(-1.5deg); }
+  75%  { transform: translateX(3px) rotate(1.5deg); }
+  87%  { transform: translateX(-1px) rotate(-0.5deg); }
+}
+
+@keyframes ticket-fly {
+  0%   { transform: translate(0, 0) rotate(0deg) scale(1); opacity: 1; }
+  100% { transform: translate(var(--tx, 60px), var(--ty, -120px)) rotate(var(--rot, 45deg)) scale(0.7); opacity: 0; }
+}
+
+@keyframes ticket-rise {
+  from { transform: translateY(0) rotate(-4deg); opacity: 1; }
+  to   { transform: translateY(-180px) rotate(6deg); opacity: 1; }
+}
+
+@keyframes ticket-unfold {
+  from { transform: perspective(500px) rotateX(75deg) scaleY(0.2); opacity: 0; }
+  to   { transform: perspective(500px) rotateX(0deg) scaleY(1); opacity: 1; }
+}
+
+@keyframes ticket-bounce {
+  0%   { transform: translateY(-180px) rotate(6deg); }
+  60%  { transform: translateY(-188px) rotate(4deg); }
+  100% { transform: translateY(-180px) rotate(6deg); }
+}
+
+.animate-jar-shake    { animation: jar-shake 0.65s cubic-bezier(0.36, 0.07, 0.19, 0.97); }
+.animate-ticket-rise  { animation: ticket-rise 0.8s cubic-bezier(0.2, 0.9, 0.3, 1) forwards; }
+.animate-ticket-bounce{ animation: ticket-bounce 1.6s ease-in-out infinite; }
+.animate-ticket-unfold{ animation: ticket-unfold 0.55s cubic-bezier(0.2, 0.9, 0.3, 1) forwards; }
+
+/* ── Memory Sky ─────────────────────────────────────────────────────── */
+@keyframes star-twinkle {
+  0%, 100% { opacity: 1;   transform: scale(1); }
+  50%       { opacity: 0.15; transform: scale(0.6); }
+}
+.animate-star { animation: star-twinkle var(--dur, 4s) ease-in-out var(--delay, 0s) infinite; }
+
+/* ── Ambient dust particles ─────────────────────────────────────────── */
+@keyframes dust-drift {
+  0%   { transform: translate(0, 0) rotate(0deg); opacity: 0; }
+  8%   { opacity: var(--max-op, 0.4); }
+  92%  { opacity: var(--max-op, 0.4); }
+  100% { transform: translate(var(--dx, 30px), -110vh) rotate(540deg); opacity: 0; }
+}
+.dust-particle {
+  position: fixed;
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: rgba(232, 184, 96, 0.5);
+  pointer-events: none;
+  animation: dust-drift var(--dur, 18s) linear var(--delay, 0s) infinite;
+  z-index: 0;
+}
+
+/* ── Projector intro ────────────────────────────────────────────────── */
+@keyframes projector-flicker {
+  0%, 100% { opacity: 1; }
+  91% { opacity: 1; }
+  92% { opacity: 0.6; }
+  93% { opacity: 1; }
+  95% { opacity: 0.8; }
+  96% { opacity: 1; }
+}
+@keyframes beam-appear {
+  from { opacity: 0; clip-path: polygon(35% 0%, 65% 0%, 100% 100%, 0% 100%); }
+  to   { opacity: 1; clip-path: polygon(35% 0%, 65% 0%, 100% 100%, 0% 100%); }
+}
+@keyframes intro-slide-up {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes intro-fade-out {
+  from { opacity: 1; }
+  to   { opacity: 0; pointer-events: none; }
+}
+.animate-projector  { animation: projector-flicker 10s ease-in-out infinite; }
+.animate-beam       { animation: beam-appear 0.6s ease-out forwards; }
+.animate-intro-text { animation: intro-slide-up 0.7s ease-out 0.8s both; }
+.animate-intro-exit { animation: intro-fade-out 0.5s ease-out forwards; }
+
+/* ── Cinema Garden ─────────────────────────────────────────────────── */
+@keyframes garden-grow {
+  from { transform: scale(0) translateY(20px); opacity: 0; }
+  to   { transform: scale(1) translateY(0); opacity: 1; }
+}
+@keyframes sway {
+  0%, 100% { transform: rotate(-3deg); }
+  50%       { transform: rotate(3deg); }
+}
+.garden-item        { animation: garden-grow 0.7s cubic-bezier(0.2, 0.9, 0.3, 1) both; }
+.animate-sway       { animation: sway 4s ease-in-out infinite; }

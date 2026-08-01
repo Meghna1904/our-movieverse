@@ -4,14 +4,17 @@ import { useRouter } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { lockSite, getSessionStatus } from "@/lib/gate.functions";
 import { listMovies } from "@/lib/movies.functions";
-import { Film, Home, Bookmark, BarChart3, Plus, LogOut, Bell } from "lucide-react";
+import { Film, Home, Bookmark, BarChart3, Plus, LogOut, Bell, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState, useRef, useEffect } from "react";
+import { DustParticles } from "@/components/Ambient";
+import { MouseGlow } from "@/components/MouseGlow";
 
 const NAV = [
   { to: "/", label: "Home", icon: Home },
   { to: "/watchlist", label: "Watchlist", icon: Bookmark },
   { to: "/watched", label: "Watched", icon: Film },
+  { to: "/sky", label: "Sky", icon: Sparkles },
   { to: "/stats", label: "Stats", icon: BarChart3 },
 ] as const;
 
@@ -121,7 +124,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const lock = useServerFn(lockSite);
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="relative min-h-screen flex flex-col overflow-x-hidden">
+      <MouseGlow />
+      <DustParticles />
+
       <header className="sticky top-0 z-40 glass">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3 md:px-8">
           <Link to="/" className="flex items-center gap-2">
@@ -180,11 +186,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </div>
       </header>
 
-      <main className="flex-1 mx-auto w-full max-w-6xl px-4 md:px-8 py-8 animate-fade-in">
+      <main className="relative z-10 flex-1 mx-auto w-full max-w-6xl px-4 md:px-8 py-8 animate-fade-in">
         {children}
       </main>
 
-      <nav className="md:hidden sticky bottom-0 glass border-t border-border">
+      <nav className="md:hidden sticky bottom-0 z-40 glass border-t border-border">
         <div className="flex items-center justify-around py-2">
           {[...NAV, { to: "/add", label: "Add", icon: Plus }].map(
             ({ to, label, icon: Icon }) => {

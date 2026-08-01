@@ -6,11 +6,12 @@ import {
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
-import { useEffect, type ReactNode } from "react";
+import { useCallback, useEffect, useState, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { Toaster } from "@/components/ui/sonner";
+import { ProjectorIntro } from "@/components/ProjectorIntro";
 
 function NotFoundComponent() {
   return (
@@ -119,11 +120,27 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  const [showIntro, setShowIntro] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (!window.sessionStorage.getItem("movieverse_intro_seen")) {
+      setShowIntro(true);
+    }
+  }, []);
+
+  const dismissIntro = useCallback(() => {
+    if (typeof window !== "undefined") {
+      window.sessionStorage.setItem("movieverse_intro_seen", "true");
+    }
+    setShowIntro(false);
+  }, []);
 
   return (
     <QueryClientProvider client={queryClient}>
       <Outlet />
       <Toaster />
+      {showIntro && <ProjectorIntro onDone={dismissIntro} />}
     </QueryClientProvider>
   );
 }
