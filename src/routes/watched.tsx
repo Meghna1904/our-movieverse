@@ -1,4 +1,4 @@
-import { createFileRoute, redirect } from "@tanstack/react-router";
+import { createFileRoute, redirect, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useState, useMemo } from "react";
 import { AppShell } from "@/components/AppShell";
@@ -6,13 +6,14 @@ import { MoviePosterCard } from "@/components/MovieCard";
 import { getSessionStatus } from "@/lib/gate.functions";
 import { listMovies } from "@/lib/movies.functions";
 import { Input } from "@/components/ui/input";
-import { Search, Film } from "lucide-react";
+import { Search, Film, Plus } from "lucide-react";
 
 export const Route = createFileRoute("/watched")({
   ssr: false,
   beforeLoad: async () => {
     const s = await getSessionStatus();
     if (!s.unlocked) throw redirect({ to: "/unlock" });
+    return { who: s.who };
   },
   head: () => ({
     meta: [
@@ -50,12 +51,20 @@ function WatchedPage() {
 
   return (
     <AppShell>
-      <div className="mb-6">
-        <p className="text-xs uppercase tracking-[0.25em] text-muted-foreground">The archive</p>
-        <h1 className="font-serif text-4xl mt-1">Watched together</h1>
-        <p className="text-sm text-muted-foreground mt-1">
-          {items.length} {items.length === 1 ? "movie" : "movies"} in your little cinema.
-        </p>
+      <div className="mb-6 flex items-start justify-between gap-4 flex-wrap">
+        <div>
+          <p className="text-xs uppercase tracking-[0.25em] text-muted-foreground">The archive</p>
+          <h1 className="font-serif text-4xl mt-1">Watched together</h1>
+          <p className="text-sm text-muted-foreground mt-1">
+            {items.length} {items.length === 1 ? "movie" : "movies"} in your little cinema.
+          </p>
+        </div>
+        <Link
+          to="/add"
+          className="inline-flex items-center gap-1.5 rounded-full bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition-transform hover:scale-105 flex-shrink-0"
+        >
+          <Plus className="w-4 h-4" /> Add movie
+        </Link>
       </div>
 
       <div className="mb-6 flex gap-3 flex-wrap">

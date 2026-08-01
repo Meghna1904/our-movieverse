@@ -70,12 +70,14 @@ export function MarkWatchedDialog({
   onSave,
   title,
   submitting,
+  who,
 }: {
   open: boolean;
   onOpenChange: (v: boolean) => void;
   onSave: (v: WatchedValues) => void | Promise<void>;
   title: string;
   submitting?: boolean;
+  who: "whiskeyy" | "matildaa";
 }) {
   const {
     register,
@@ -119,28 +121,44 @@ export function MarkWatchedDialog({
 
           <div className="grid md:grid-cols-2 gap-4 p-4 rounded-xl bg-background/50 border border-border">
             <div>
-              <Label className="text-primary">Whiskeyy's rating</Label>
-              <Controller
-                control={control}
-                name="my_rating"
-                render={({ field }) => (
-                  <div className="mt-2">
-                    <RatingStars value={field.value} onChange={field.onChange} />
-                  </div>
-                )}
-              />
+              <Label className="text-primary">
+                Whiskeyy's rating{who === "whiskeyy" ? " (you)" : ""}
+              </Label>
+              {who === "whiskeyy" ? (
+                <Controller
+                  control={control}
+                  name="my_rating"
+                  render={({ field }) => (
+                    <div className="mt-2">
+                      <RatingStars value={field.value} onChange={field.onChange} />
+                    </div>
+                  )}
+                />
+              ) : (
+                <p className="mt-2 text-xs text-muted-foreground italic">
+                  Whiskeyy will rate separately 🔒
+                </p>
+              )}
             </div>
             <div>
-              <Label className="text-lavender">matildaa's rating</Label>
-              <Controller
-                control={control}
-                name="his_rating"
-                render={({ field }) => (
-                  <div className="mt-2">
-                    <RatingStars value={field.value} onChange={field.onChange} color="lavender" />
-                  </div>
-                )}
-              />
+              <Label className="text-lavender">
+                matildaa's rating{who === "matildaa" ? " (you)" : ""}
+              </Label>
+              {who === "matildaa" ? (
+                <Controller
+                  control={control}
+                  name="his_rating"
+                  render={({ field }) => (
+                    <div className="mt-2">
+                      <RatingStars value={field.value} onChange={field.onChange} color="lavender" />
+                    </div>
+                  )}
+                />
+              ) : (
+                <p className="mt-2 text-xs text-muted-foreground italic">
+                  matildaa will rate separately 🔒
+                </p>
+              )}
             </div>
           </div>
 

@@ -1,9 +1,12 @@
 import { Link, useLocation } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useRouter } from "@tanstack/react-router";
-import { lockSite } from "@/lib/gate.functions";
-import { Film, Home, Bookmark, BarChart3, Plus, LogOut } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { lockSite, getSessionStatus } from "@/lib/gate.functions";
+import { listMovies } from "@/lib/movies.functions";
+import { Film, Home, Bookmark, BarChart3, Plus, LogOut, Bell } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useState, useRef, useEffect } from "react";
 
 const NAV = [
   { to: "/", label: "Home", icon: Home },
@@ -11,6 +14,106 @@ const NAV = [
   { to: "/watched", label: "Watched", icon: Film },
   { to: "/stats", label: "Stats", icon: BarChart3 },
 ] as const;
+
+function NotificationBell() {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  // Get current user
+  const whoQuery = useQuery({
+    queryKey: ["session"],
+    queryFn: () => getSessionStatus(),
+    staleTime: 60_000,
+  });
+  const who = whoQuery.data?.who as "whiskeyy" | "matildaa" | null | undefined;
+
+  // Get watched movies
+  const moviesQuery = useQuery({
+    queryKey: ["movies", "watched"],
+    queryFn: () => listMovies({ data: { status: "watched" } }),
+    staleTime: 30_000,
+  });
+
+  // Movies where THIS user hasn't rated yet
+  const unrated = (moviesQuery.data ?? []).filter((m) => {
+    if (!who) return false;
+    const mine = who === "whiskeyy" ? m.my_rating : m.his_rating;
+    return mine == null;
+  });
+
+  const count = unrated.length;
+
+  // Close on click outside
+  useEffect(() => {
+    function handler(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    }
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  return (
+    <div className="relative" ref={ref}>
+      <button
+        onClick={() => setOpen((v) => !v)}
+        className="relative p-2 rounded-full hover:bg-white/5 text-muted-foreground transition"
+        aria-label="Notifications"
+      >
+        <Bell className="w-4 h-4" />
+        {count > 0 && (
+          <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 px-1 rounded-full bg-primary text-primary-foreground text-[10px] font-bold flex items-center justify-center">
+            {count}
+          </span>
+        )}
+      </button>
+
+      {open && (
+        <div className="absolute right-0 top-10 w-80 rounded-2xl border border-border bg-card shadow-xl z-50 overflow-hidden animate-fade-in">
+          <div className="px-4 py-3 border-b border-border flex items-center justify-between">
+            <p className="text-sm font-semibold">Pending ratings</p>
+            {count === 0 && (
+              <span className="text-xs text-muted-foreground">All caught up ✓</span>
+            )}
+          </div>
+
+          {count === 0 ? (
+            <div className="px-4 py-6 text-center text-sm text-muted-foreground">
+              You've rated everything 🌟
+            </div>
+          ) : (
+            <div className="divide-y divide-border max-h-72 overflow-y-auto">
+              {unrated.map((m) => (
+                <Link
+                  key={m.id}
+                  to="/movie/$id"
+                  params={{ id: m.id }}
+                  onClick={() => setOpen(false)}
+                  className="flex items-center gap-3 px-4 py-3 hover:bg-muted/50 transition-colors"
+                >
+                  {m.poster_url ? (
+                    <img
+                      src={m.poster_url}
+                      alt={m.title}
+                      className="w-8 h-12 object-cover rounded flex-shrink-0"
+                    />
+                  ) : (
+                    <div className="w-8 h-12 rounded bg-secondary flex-shrink-0 grid place-items-center">
+                      <Film className="w-3 h-3 text-muted-foreground" />
+                    </div>
+                  )}
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium truncate">{m.title}</p>
+                    <p className="text-xs text-primary mt-0.5">⭐ Tap to rate</p>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const location = useLocation();
@@ -62,6 +165,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             >
               <Plus className="w-4 h-4" /> Add
             </Link>
+            <NotificationBell />
             <button
               onClick={async () => {
                 await lock();

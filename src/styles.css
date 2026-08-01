@@ -148,3 +148,16 @@
   background-size: 200% 100%;
   animation: shimmer 1.6s infinite;
 }
+
+/* Fix native <select> dropdown background in dark theme */
+select {
+  color-scheme: dark;
+}
+select option {
+  background-color: #151A2E;
+  color: #F5F1E8;
+}
+select option:checked,
+select option:hover {
+  background-color: #1E2540;
+}
