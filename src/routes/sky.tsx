@@ -13,8 +13,8 @@ export const Route = createFileRoute("/sky")({
   },
   head: () => ({
     meta: [
-      { title: "Memory Sky - The Movieverse" },
-      { name: "description", content: "Every movie we watched together, a star in our sky." },
+      { title: "Polaroid Wall - The Movieverse" },
+      { name: "description", content: "Every movie we watched together, pinned to our wall." },
     ],
   }),
   component: SkyPage,

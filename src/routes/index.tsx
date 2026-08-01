@@ -170,17 +170,17 @@ function Home() {
         <CinemaGarden watchedCount={stats?.totalWatched ?? 0} />
       </section>
 
-      {/* ── Memory Sky preview ────────────────────────────────────────── */}
+      {/* Polaroid wall preview */}
       {watched.length > 0 && (
         <section className="mb-8">
           <div className="flex items-baseline justify-between mb-4">
             <div>
-              <h2 className="font-serif text-2xl">Memory Sky</h2>
+              <h2 className="font-serif text-2xl">Polaroid Wall</h2>
               <p className="text-xs text-muted-foreground mt-0.5">
-                {watched.length} {watched.length === 1 ? "star" : "stars"} — each one a memory
+                {watched.length} {watched.length === 1 ? "movie" : "movies"} pinned up like keepsakes
               </p>
             </div>
-            <Link to="/sky" className="text-xs text-primary hover:underline">Open sky →</Link>
+            <Link to="/sky" className="text-xs text-primary hover:underline">Open wall</Link>
           </div>
           <Link to="/sky" className="block group">
             <div className="relative overflow-hidden rounded-2xl transition-transform group-hover:scale-[1.01]">
