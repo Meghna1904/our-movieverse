@@ -7,6 +7,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { AppShell } from "@/components/AppShell";
 import { MarkWatchedDialog } from "@/components/MarkWatchedDialog";
+import { RatingStars } from "@/components/RatingStars";
 import { getSessionStatus } from "@/lib/gate.functions";
 import { getMovie, updateMovie, deleteMovie } from "@/lib/movies.functions";
 import { formatDate, formatRuntime, GENRES, MOODS, PLATFORMS } from "@/lib/format";
@@ -35,55 +36,6 @@ export const Route = createFileRoute("/movie/$id")({
   component: MovieDetail,
 });
 
-// ── Inline star rating ────────────────────────────────────────────────────────
-function RatingStars({
-  value,
-  onChange,
-  color = "gold",
-  disabled = false,
-}: {
-  value?: number | null;
-  onChange?: (v: number) => void;
-  color?: "gold" | "lavender";
-  disabled?: boolean;
-}) {
-  return (
-    <div className="flex items-center gap-0.5 flex-wrap">
-      {Array.from({ length: 10 }).map((_, i) => {
-        const v = i + 1;
-        const active = value != null && v <= value;
-        return (
-          <button
-            key={i}
-            type="button"
-            disabled={disabled}
-            onClick={() => !disabled && onChange?.(v)}
-            className={cn(
-              "p-0.5 transition-transform",
-              !disabled && "hover:scale-125 cursor-pointer",
-              disabled && "cursor-default",
-            )}
-          >
-            <Star
-              className={cn(
-                "w-5 h-5",
-                active
-                  ? color === "gold"
-                    ? "fill-primary text-primary"
-                    : "fill-lavender text-lavender"
-                  : "text-muted-foreground/30",
-              )}
-            />
-          </button>
-        );
-      })}
-      {value != null && (
-        <span className="ml-2 font-mono text-sm text-muted-foreground">{value}/10</span>
-      )}
-    </div>
-  );
-}
-
 // ── Edit form schema ──────────────────────────────────────────────────────────
 const editSchema = z.object({
   title: z.string().trim().min(1, "Title is required").max(200),
@@ -98,8 +50,8 @@ const editSchema = z.object({
   expected_mood: z.string().optional(),
   // Watched-only fields
   watched_date: z.string().optional(),
-  my_rating: z.coerce.number().min(0).max(10).optional().or(z.literal("")),
-  his_rating: z.coerce.number().min(0).max(10).optional().or(z.literal("")),
+  my_rating: z.coerce.number().min(0).max(10).multipleOf(0.5).optional().or(z.literal("")),
+  his_rating: z.coerce.number().min(0).max(10).multipleOf(0.5).optional().or(z.literal("")),
   favorite_scene: z.string().max(2000).optional(),
   funny_memory: z.string().max(2000).optional(),
   favorite_quote: z.string().max(500).optional(),

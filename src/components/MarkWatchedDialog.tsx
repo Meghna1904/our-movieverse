@@ -7,13 +7,12 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { MOODS } from "@/lib/format";
-import { Star } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { RatingStars } from "@/components/RatingStars";
 
 const schema = z.object({
   watched_date: z.string().min(1, "Pick a date"),
-  my_rating: z.coerce.number().min(0).max(10).optional(),
-  his_rating: z.coerce.number().min(0).max(10).optional(),
+  my_rating: z.coerce.number().min(0).max(10).multipleOf(0.5).optional(),
+  his_rating: z.coerce.number().min(0).max(10).multipleOf(0.5).optional(),
   favorite_scene: z.string().max(2000).optional(),
   funny_memory: z.string().max(2000).optional(),
   recommended_by: z.string().max(60).optional(),
@@ -22,47 +21,6 @@ const schema = z.object({
   mood_afterwards: z.string().max(60).optional(),
 });
 export type WatchedValues = z.infer<typeof schema>;
-
-function RatingStars({
-  value,
-  onChange,
-  color = "gold",
-}: {
-  value?: number;
-  onChange: (v: number) => void;
-  color?: "gold" | "lavender";
-}) {
-  return (
-    <div className="flex items-center gap-0.5">
-      {Array.from({ length: 10 }).map((_, i) => {
-        const v = i + 1;
-        const active = value != null && v <= value;
-        return (
-          <button
-            key={i}
-            type="button"
-            onClick={() => onChange(v)}
-            className="p-0.5 transition-transform hover:scale-125"
-          >
-            <Star
-              className={cn(
-                "w-4 h-4",
-                active
-                  ? color === "gold"
-                    ? "fill-primary text-primary"
-                    : "fill-lavender text-lavender"
-                  : "text-muted-foreground/40",
-              )}
-            />
-          </button>
-        );
-      })}
-      {value != null && (
-        <span className="ml-2 font-mono text-sm text-muted-foreground">{value}/10</span>
-      )}
-    </div>
-  );
-}
 
 export function MarkWatchedDialog({
   open,
@@ -130,7 +88,7 @@ export function MarkWatchedDialog({
                   name="my_rating"
                   render={({ field }) => (
                     <div className="mt-2">
-                      <RatingStars value={field.value} onChange={field.onChange} />
+                      <RatingStars value={field.value} onChange={field.onChange} size="sm" />
                     </div>
                   )}
                 />
