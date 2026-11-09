@@ -1,29 +1,84 @@
-# Welcome to your Lovable project
+🎬 MovieVerse
 
-This project was built with [Lovable](https://lovable.dev).
+A personal movie discovery and watchlist web app built to make it easy to explore movies and keep track of what you want to watch.
 
-## Build with Lovable
+🌐 Live Demo: https://our-movieverse.vercel.app/
 
-Open your project in the [Lovable editor](https://lovable.dev) and keep building.
+✨ Features
+🎥 Browse and explore movies
+🔎 Search for movies
+📋 Create and manage personal watchlists
+❤️ Save movies for later
+🗂️ Organize saved movies into collections
+🔐 User based data with Supabase
+📱 Responsive interface for desktop and mobile
+⚡ Fast, modern React based UI
+🛠️ Tech Stack
+Frontend: React, TypeScript
+Framework: TanStack Start
+Styling: Tailwind CSS
+Backend / Database: Supabase
+Data Fetching: TanStack Query
+Validation: Zod
+Icons: Lucide React
+Deployment: Vercel
+🏗️ Project Structure
+src/
+├── components/          # Reusable UI components
+├── hooks/               # Custom React hooks
+├── integrations/
+│   └── supabase/        # Supabase integration
+├── lib/                 # Utility functions
+├── routes/               # Application routes
+├── server.ts            # Server configuration
+├── start.ts             # Application entry
+└── styles.css           # Global styles
 
-- **Ship faster**: describe what you want to build and Lovable handles the code.
-- **Stay in sync**: connect the project to GitHub and every change made in Lovable is committed straight to your repository.
-- **Full ownership**: this code is yours. Push to your repository and your changes sync back into Lovable, ready for your next prompt.
+supabase/
+└── Database configuration and migrations
+🚀 Getting Started
+Prerequisites
 
-## Development
+Make sure you have:
 
-Prefer working locally? You need Node.js and npm — [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating).
+Node.js installed
+A Supabase project
+Git installed
+Installation
 
-```sh
-git clone <this-repository-url>
-cd <repository-name>
-npm i
+Clone the repository:
+
+git clone https://github.com/Meghna1904/our-movieverse.git
+cd our-movieverse
+
+Install dependencies:
+
+npm install
+Environment Variables
+
+Create a .env file and add your Supabase credentials:
+
+VITE_SUPABASE_URL=your_supabase_project_url
+VITE_SUPABASE_PUBLISHABLE_KEY=your_supabase_publishable_key
+Run locally
 npm run dev
-```
 
-## Built with
+The application will be available at the local development URL shown in your terminal.
 
-- TanStack Start
-- TypeScript
-- React
-- Tailwind CSS
+📌 What I Built
+
+MovieVerse was built as a practical full stack web project to explore how a modern React application can work with a cloud database and persistent user data.
+
+The project gave me hands on experience with component based UI development, database integration, asynchronous data handling, and deploying a web application.
+
+🔮 Future Improvements
+Add movie recommendations based on watchlist activity
+Improve filtering and sorting
+Add more detailed movie information
+Add sharing options for watchlists
+Improve accessibility and performance
+👩‍💻 Author
+
+Meghna
+
+GitHub: https://github.com/Meghna1904
