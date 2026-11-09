@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" fill="none">
+  <rect x="24" y="24" width="464" height="464" rx="112" fill="#261D28"/>
+  <defs>
+    <path id="ticket" d="M24 0h172a24 24 0 0 1 24 24v22a24 24 0 0 0 0 48v32a24 24 0 0 1-24 24H24A24 24 0 0 1 0 126V94a24 24 0 0 0 0-48V24A24 24 0 0 1 24 0Z"/>
+    <polygon id="star" points="0,-28 7,-9 27,-9 11,3 17,23 0,11 -17,23 -11,3 -27,-9 -7,-9"/>
+  </defs>
+  <g transform="translate(77 151) rotate(-13 110 75)">
+    <use href="#ticket" fill="#E7B85F" stroke="#FFF1CE" stroke-width="6"/>
+    <path d="M67 15v120" stroke="#76552C" stroke-width="5" stroke-linecap="round" stroke-dasharray="3 11" opacity=".78"/>
+    <use href="#star" transform="translate(145 75)" fill="#FFF8E9"/>
+  </g>
+  <g transform="translate(204 230) rotate(11 110 75)">
+    <use href="#ticket" fill="#BBA4E5" stroke="#EDE5FF" stroke-width="6"/>
+    <path d="M67 15v120" stroke="#625079" stroke-width="5" stroke-linecap="round" stroke-dasharray="3 11" opacity=".82"/>
+    <use href="#star" transform="translate(145 75)" fill="#FFE19A"/>
+  </g>
+</svg>
